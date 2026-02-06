@@ -6,7 +6,7 @@ import * as path from "node:path";
 const fixedFiles = new Set<string>();
 
 /**
- * Parse JSONC content (JSON with comments) into a JavaScript object.
+ * Parse JSONC content (JSON with Comments) into a JavaScript object.
  * Removes single-line and multi-line comments.
  * @param content - The JSONC content
  * @returns The parsed JSON object
@@ -30,6 +30,24 @@ function getNormalizedJson(object: unknown): string {
     return JSON.stringify(object, null, 2) + "\n";
 }
 
+/**
+ * Check if package.json needs to be updated.
+ * This is called during the fix phase to avoid circular fixes.
+ */
+function needsFix(
+    packageJsonPath: string,
+    normalizedJsonc: string,
+): boolean {
+    try {
+        const content = fs.readFileSync(packageJsonPath, "utf8");
+        const data = JSON.parse(content);
+        return normalizedJsonc !== getNormalizedJson(data);
+    } catch {
+        // File doesn't exist or is invalid
+        return true;
+    }
+}
+
 const rule: Rule.RuleModule = {
     meta: {
         type: "problem",
@@ -42,9 +60,9 @@ const rule: Rule.RuleModule = {
         schema: [],
         messages: {
             missingPackageJson:
-                "package.json does not exist but package.jsonc does.",
+                "package.json does not exist but package.jsonc does. Run 'npx eslint package.jsonc --fix' to generate it.",
             inconsistentPackageJson:
-                "package.json is inconsistent with package.jsonc.",
+                "package.json is inconsistent with package.jsonc. Run 'npx eslint package.jsonc --fix' to update it.",
         },
     },
 
@@ -73,100 +91,58 @@ const rule: Rule.RuleModule = {
                     return;
                 }
 
-                // Check if package.json exists
-                let packageJsonExists = false;
-                let packageJsonContent = "";
+                const normalizedJsonc = getNormalizedJson(jsoncData);
+
+                // Check if package.json exists and is consistent
+                let isConsistent = false;
                 try {
-                    packageJsonContent = fs.readFileSync(
+                    const packageJsonContent = fs.readFileSync(
                         packageJsonPath,
                         "utf8",
                     );
-                    packageJsonExists = true;
+                    const packageJsonData = JSON.parse(packageJsonContent);
+                    isConsistent = normalizedJsonc === getNormalizedJson(packageJsonData);
                 } catch {
-                    // package.json does not exist
+                    // package.json does not exist or is invalid
                 }
 
-                const normalizedJsonc = getNormalizedJson(jsoncData);
-
-                if (!packageJsonExists) {
-                    // Check if we've already fixed this file in this run
-                    if (fixedFiles.has(filename)) {
-                        return;
-                    }
-
-                    context.report({
-                        node,
-                        messageId: "missingPackageJson",
-                        fix(fixer) {
-                            // Only apply the fix once per file per ESLint run
-                            if (!fixedFiles.has(filename)) {
-                                fixedFiles.add(filename);
-                                fs.writeFileSync(
-                                    packageJsonPath,
-                                    normalizedJsonc,
-                                    "utf8",
-                                );
-                            }
-                            // Return a no-op fix that ESLint will recognize as applied
-                            return fixer.insertTextAfter(node, "");
-                        },
-                    });
+                if (isConsistent) {
                     return;
                 }
 
-                // Parse package.json content
-                let packageJsonData: unknown;
-                try {
-                    packageJsonData = JSON.parse(packageJsonContent);
-                } catch {
-                    // package.json has syntax errors, regenerate it
-                    if (fixedFiles.has(filename)) {
-                        return;
-                    }
+                // Report the error with a fixer
+                const messageId = fs.existsSync(packageJsonPath)
+                    ? "inconsistentPackageJson"
+                    : "missingPackageJson";
 
-                    context.report({
-                        node,
-                        messageId: "inconsistentPackageJson",
-                        fix(fixer) {
-                            if (!fixedFiles.has(filename)) {
-                                fixedFiles.add(filename);
-                                fs.writeFileSync(
-                                    packageJsonPath,
-                                    normalizedJsonc,
-                                    "utf8",
-                                );
-                            }
-                            return fixer.insertTextAfter(node, "");
-                        },
-                    });
-                    return;
-                }
+                context.report({
+                    node,
+                    messageId,
+                    fix(fixer) {
+                        // Check if we've already fixed this file in this run
+                        if (fixedFiles.has(filename)) {
+                            return null;
+                        }
 
-                // Compare the contents
-                const normalizedJson = getNormalizedJson(packageJsonData);
+                        // Check if fix is actually needed
+                        if (!needsFix(packageJsonPath, normalizedJsonc)) {
+                            fixedFiles.add(filename);
+                            return null;
+                        }
 
-                if (normalizedJsonc !== normalizedJson) {
-                    // Check if we've already fixed this file
-                    if (fixedFiles.has(filename)) {
-                        return;
-                    }
+                        // Apply the fix
+                        fixedFiles.add(filename);
+                        fs.writeFileSync(
+                            packageJsonPath,
+                            normalizedJsonc,
+                            "utf8",
+                        );
 
-                    context.report({
-                        node,
-                        messageId: "inconsistentPackageJson",
-                        fix(fixer) {
-                            if (!fixedFiles.has(filename)) {
-                                fixedFiles.add(filename);
-                                fs.writeFileSync(
-                                    packageJsonPath,
-                                    normalizedJsonc,
-                                    "utf8",
-                                );
-                            }
-                            return fixer.insertTextAfter(node, "");
-                        },
-                    });
-                }
+                        // Return null to indicate no source text changes
+                        // The actual fix happened to a different file (package.json)
+                        return null;
+                    },
+                });
             },
         };
     },
