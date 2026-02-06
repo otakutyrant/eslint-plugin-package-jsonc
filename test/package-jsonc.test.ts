@@ -4,7 +4,7 @@ import { getStaticJSONValue, parseJSON } from "jsonc-eslint-parser";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import plugin from "../dist/index.js";
 
 /**
@@ -39,6 +39,16 @@ function parseJSONC(content: string): unknown {
     const ast = parseJSON(content);
     return getStaticJSONValue(ast);
 }
+
+describe("plugin metadata", () => {
+    it("should have meta property with name and version", () => {
+        expect(plugin.meta).toBeDefined();
+        expect(plugin.meta?.name).toBe("eslint-plugin-package-jsonc");
+        expect(plugin.meta?.version).toBeDefined();
+
+        expectTypeOf(plugin.meta?.version).toBeString();
+    });
+});
 
 describe("package-jsonc sync rule", () => {
     it("should correctly parse JSONC content by removing comments", () => {
@@ -223,6 +233,69 @@ describe("package-jsonc sync rule", () => {
         );
 
         expect(errorCount).toBe(0);
+
+        cleanupTemporaryDirectory(temporaryDirectory);
+        clearFixedFiles?.();
+    });
+
+    it("should regenerate package.json when it is broken/invalid JSON", async () => {
+        const temporaryDirectory = createTemporaryDirectory();
+        const packageJsoncPath = path.join(temporaryDirectory, "package.jsonc");
+        const packageJsonPath = path.join(temporaryDirectory, "package.json");
+
+        const packageJsoncContent = `{
+    "name": "test-package",
+    "version": "1.0.0"
+  }`;
+
+        // Create a broken/invalid package.json
+        const brokenPackageJsonContent = `{
+    "name": "test-package",
+    "version": "1.0.0",
+    invalid json here!!!
+  }`;
+
+        fs.writeFileSync(packageJsoncPath, packageJsoncContent, "utf8");
+        fs.writeFileSync(packageJsonPath, brokenPackageJsonContent, "utf8");
+
+        // Verify package.json exists but is invalid
+        expect(fs.existsSync(packageJsonPath)).toBe(true);
+        expect(() => {
+            const content = fs.readFileSync(packageJsonPath);
+            JSON.parse(content) as unknown;
+        }).toThrowError("JSON");
+
+        const eslint = new ESLint({
+            cwd: temporaryDirectory,
+            overrideConfigFile: true,
+            overrideConfig: [
+                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.jsonc"],
+                    plugins: {
+                        "package-jsonc": plugin,
+                    },
+                    rules: {
+                        "package-jsonc/sync": "error",
+                    },
+                },
+            ],
+            fix: true,
+        });
+
+        await eslint.lintFiles(["package.jsonc"]);
+
+        // Check that package.json was regenerated correctly
+        const packageJsonContent = fs.readFileSync(packageJsonPath);
+        const packageJsonData = JSON.parse(packageJsonContent.toString()) as {
+            name: string;
+            version: string;
+        };
+
+        expect(packageJsonData).toStrictEqual({
+            name: "test-package",
+            version: "1.0.0",
+        });
 
         cleanupTemporaryDirectory(temporaryDirectory);
         clearFixedFiles?.();
