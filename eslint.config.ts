@@ -67,7 +67,7 @@ const eslintConfig = defineConfig(
                     allowDefaultProject: [
                         "eslint.config.ts",
                         "prettier.config.ts",
-                        "test/package-jsonc.test.js",
+                        "test/package-jsonc.test.ts",
                     ],
                 },
             },
@@ -102,7 +102,7 @@ const eslintConfig = defineConfig(
         name: "Ignore non-TypeScript files",
         ignores: [
             "postcss.config.mjs", // As it is not TypeScript while I use projectService
-            "test/**/*.js", // JavaScript test files
+            // All test files are now TypeScript
         ],
     },
 );

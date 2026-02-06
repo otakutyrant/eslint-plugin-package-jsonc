@@ -20,7 +20,7 @@
         "build": "tsc",
         "lint": "tsc --noEmit && eslint",
         "format": "prettier --write . --log-level warn",
-        "test": "node test/package-jsonc.test.js",
+        "test": "vitest run",
         "prepublishOnly": "npm run build"
     },
     "keywords": [

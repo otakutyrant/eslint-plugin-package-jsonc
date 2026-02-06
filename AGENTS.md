@@ -12,8 +12,7 @@ Before completing my request, read `package.json` to understand the project stru
 │   └── rules/
 │       └── package-jsonc.ts # The sync rule implementation
 ├── test/
-│   ├── json-parser.ts       # Test helper parser
-│   └── package-jsonc.test.ts # Test suite
+│   └── package-jsonc.test.ts # Vitest test suite
 ├── dist/                    # Compiled JavaScript output
 ├── package.json             # Package configuration
 ├── package.jsonc            # Source of truth (JSON with comments)
