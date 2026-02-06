@@ -4,10 +4,12 @@ import { includeIgnoreFile } from "@eslint/compat";
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
 import jsonc from "eslint-plugin-jsonc";
-import packageJsonc from "eslint-plugin-package-jsonc";
+// Use relative path to load the plugin directly from dist/
+// This ensures ESLint works even when package.json is missing
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
+import packageJsonc from "./dist/index.js";
 
 const gitignorePath = fileURLToPath(new URL(".gitignore", import.meta.url));
 

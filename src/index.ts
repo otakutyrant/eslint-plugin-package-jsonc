@@ -1,20 +1,15 @@
 import type { ESLint } from "eslint";
-import { createRequire } from "node:module";
 import packageJsoncRule, { clearFixedFiles } from "./rules/package-jsonc.js";
 
-// Create require function for ESM to read our own package.json
-// This ensures the plugin has its own metadata, avoiding the chicken-and-egg
-// problem where the plugin can't run if the project's package.json is missing.
-const require = createRequire(import.meta.url);
-const { name, version } = require("../package.json") as {
-    name: string;
-    version: string;
-};
+// Plugin metadata - hardcoded to avoid dependency on package.json
+// This ensures the plugin works even when the project's package.json is missing
+const PLUGIN_NAME = "eslint-plugin-package-jsonc";
+const PLUGIN_VERSION = "1.0.4";
 
 const plugin: ESLint.Plugin = {
     meta: {
-        name,
-        version,
+        name: PLUGIN_NAME,
+        version: PLUGIN_VERSION,
     },
     rules: {
         sync: packageJsoncRule,
