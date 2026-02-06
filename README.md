@@ -63,3 +63,7 @@ eslint package.jsonc --fix
 
 - **Comments in package.json**: JSONC allows you to add comments to your package configuration while maintaining a standard `package.json` for npm compatibility.
 - **Single source of truth**: `package.jsonc` becomes the source of truth, and `package.json` is auto-generated.
+
+## Hints
+
+You can use eslint-plugin-package-json as you let AI fix related errors in package.jsonc rather than package.json.
