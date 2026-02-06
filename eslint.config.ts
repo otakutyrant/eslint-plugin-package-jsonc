@@ -3,11 +3,31 @@ import { fileURLToPath } from "node:url";
 import { includeIgnoreFile } from "@eslint/compat";
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
+import packageJsonc from "eslint-plugin-package-jsonc";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 const gitignorePath = fileURLToPath(new URL(".gitignore", import.meta.url));
+
+// Custom parser for JSONC files
+const jsoncParser = {
+    meta: {
+        name: "jsonc-plain-parser",
+        version: "1.0.0",
+    },
+    parse: (code: string) => ({
+        type: "Program",
+        body: [],
+        tokens: [],
+        comments: [],
+        range: [0, code.length],
+        loc: {
+            start: { line: 1, column: 0 },
+            end: { line: code.split("\n").length, column: 0 },
+        },
+    }),
+};
 
 const eslintConfig = defineConfig(
     {
@@ -18,6 +38,7 @@ const eslintConfig = defineConfig(
     },
     {
         name: "Refine js rules",
+        files: ["**/*.ts", "**/*.tsx"],
         rules: {
             "capitalized-comments": "off",
             "consistent-return": "off",
@@ -47,10 +68,18 @@ const eslintConfig = defineConfig(
             "no-void": "off", // I know what I am doing, and I use it to solve -no-misused-promises problems
         },
     },
-    tseslint.configs.strictTypeChecked,
-    tseslint.configs.stylisticTypeChecked, // This extends `tseslint.configs.stylisticTypeChecked`'s `['./configs/eslintrc/base', './configs/eslintrc/eslint-recommended']` again, and it can't be helped. Maybe I can enable `tseslint.configs.all` instead in the future.
+    // TypeScript ESLint configs - apply only to TS files
+    ...tseslint.configs.strictTypeChecked.map((config) => ({
+        ...config,
+        files: ["**/*.ts", "**/*.tsx"],
+    })),
+    ...tseslint.configs.stylisticTypeChecked.map((config) => ({
+        ...config,
+        files: ["**/*.ts", "**/*.tsx"],
+    })),
     {
         name: "Refine typescript-eslint rules",
+        files: ["**/*.ts", "**/*.tsx"],
         rules: {
             "@typescript-eslint/strict-boolean-expressions": "error",
             "@typescript-eslint/no-shadow": "error",
@@ -61,6 +90,7 @@ const eslintConfig = defineConfig(
     },
     {
         name: "Make tseslint works with type linting",
+        files: ["**/*.ts", "**/*.tsx"],
         languageOptions: {
             parserOptions: {
                 projectService: {
@@ -73,9 +103,15 @@ const eslintConfig = defineConfig(
             },
         },
     },
-    eslintPluginUnicorn.configs.all,
+    // eslint-plugin-unicorn configs - apply only to JS/TS files
+    {
+        name: "eslint-plugin-unicorn/all",
+        files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs"],
+        ...eslintPluginUnicorn.configs.all,
+    },
     {
         name: "Refine unicorn rules",
+        files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs"],
         rules: {
             "unicorn/no-useless-undefined": [
                 "error",
@@ -95,6 +131,20 @@ const eslintConfig = defineConfig(
             ...vitest.configs.all.rules,
             "vitest/max-expects": ["warn", { max: 20 }],
             "vitest/prefer-expect-assertions": "off",
+        },
+    },
+    // package-jsonc rule - apply only to package.jsonc files
+    {
+        name: "package-jsonc/sync",
+        files: ["**/package.jsonc"],
+        plugins: {
+            "package-jsonc": packageJsonc,
+        },
+        rules: {
+            "package-jsonc/sync": "error",
+        },
+        languageOptions: {
+            parser: jsoncParser,
         },
     },
     includeIgnoreFile(gitignorePath, "Use .gitignore to ignore"),

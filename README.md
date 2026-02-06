@@ -17,17 +17,42 @@ Add the plugin to your ESLint configuration:
 ```javascript
 import packageJsonc from "eslint-plugin-package-jsonc";
 
+// Custom parser for JSONC files
+const jsoncParser = {
+    meta: {
+        name: "jsonc-plain-parser",
+        version: "1.0.0",
+    },
+    parse: (code) => ({
+        type: "Program",
+        body: [],
+        tokens: [],
+        comments: [],
+        range: [0, code.length],
+        loc: {
+            start: { line: 1, column: 0 },
+            end: { line: code.split("\n").length, column: 0 },
+        },
+    }),
+};
+
 export default [
     {
+        files: ["**/package.jsonc"],
         plugins: {
             "package-jsonc": packageJsonc,
         },
         rules: {
             "package-jsonc/sync": "error",
         },
+        languageOptions: {
+            parser: jsoncParser,
+        },
     },
 ];
 ```
+
+> **Note**: The `files` pattern and custom parser are required because ESLint's default TypeScript/JavaScript parser cannot parse `.jsonc` files. The custom parser returns a minimal AST that allows the rule to access the file's source code via `context.sourceCode.getText()`.
 
 ## Rule: `package-jsonc/sync`
 
