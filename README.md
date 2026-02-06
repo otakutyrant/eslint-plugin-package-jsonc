@@ -15,17 +15,17 @@ Add the plugin to your ESLint configuration:
 ### Flat Config (eslint.config.js)
 
 ```javascript
-import packageJsonc from 'eslint-plugin-package-jsonc';
+import packageJsonc from "eslint-plugin-package-jsonc";
 
 export default [
-  {
-    plugins: {
-      'package-jsonc': packageJsonc
+    {
+        plugins: {
+            "package-jsonc": packageJsonc,
+        },
+        rules: {
+            "package-jsonc/sync": "error",
+        },
     },
-    rules: {
-      'package-jsonc/sync': 'error'
-    }
-  }
 ];
 ```
 
@@ -33,10 +33,10 @@ export default [
 
 ```json
 {
-  "plugins": ["package-jsonc"],
-  "rules": {
-    "package-jsonc/sync": "error"
-  }
+    "plugins": ["package-jsonc"],
+    "rules": {
+        "package-jsonc/sync": "error"
+    }
 }
 ```
 
@@ -50,6 +50,7 @@ This rule ensures that `package.json` is always in sync with `package.jsonc`:
 ### Fix Mode
 
 When running ESLint with the `--fix` flag, the plugin will automatically:
+
 1. Generate `package.json` if it doesn't exist
 2. Update `package.json` if it's inconsistent with `package.jsonc`
 

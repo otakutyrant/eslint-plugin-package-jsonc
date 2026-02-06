@@ -1,0 +1,36 @@
+// TypeScript regards tsconfig.json as JSONC, so it supports comments here.
+
+{
+    "compilerOptions": {
+        // Target modern Node.js (ES2022)
+        "target": "ES2022",
+        // Use Node.js native ESM support
+        "module": "NodeNext",
+        // Use Node.js module resolution for ESM
+        "moduleResolution": "NodeNext",
+        // Provide ES2022 library definitions for compile-time type check
+        "lib": ["ES2022"],
+        // Output compiled files to dist/ folder
+        "noEmit": false,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        // Generate declaration files for library consumers
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        // Skip type checking of third-party declaration files
+        "skipLibCheck": true,
+        // Enable all strict type-checking options
+        "strict": true,
+        // Allow importing CommonJS modules in ES modules
+        "esModuleInterop": true,
+        // Allow importing JSON files
+        "resolveJsonModule": true,
+        // Ensure each file can be transpiled independently
+        "isolatedModules": true,
+        // Ensure consistent file casing
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "dist", "test"]
+}
