@@ -1,0 +1,25 @@
+{
+  "name": "eslint-plugin-package-jsonc",
+  "version": "1.0.0",
+  "description": "ESLint plugin to ensure package.json is consistent with package.jsonc",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/package-jsonc.test.js"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "package.json",
+    "package.jsonc",
+    "jsonc"
+  ],
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "espree": "^11.1.0"
+  }
+}
