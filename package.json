@@ -1,6 +1,6 @@
 {
     "name": "eslint-plugin-package-jsonc",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "ESLint plugin to ensure package.json is consistent with package.jsonc",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
