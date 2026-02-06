@@ -29,17 +29,6 @@ export default [
 ];
 ```
 
-### Legacy Config (.eslintrc)
-
-```json
-{
-    "plugins": ["package-jsonc"],
-    "rules": {
-        "package-jsonc/sync": "error"
-    }
-}
-```
-
 ## Rule: `package-jsonc/sync`
 
 This rule ensures that `package.json` is always in sync with `package.jsonc`:
