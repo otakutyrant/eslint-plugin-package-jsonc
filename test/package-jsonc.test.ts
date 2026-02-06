@@ -1,5 +1,6 @@
 import { ESLint } from "eslint";
-import * as espree from "espree";
+import jsonc from "eslint-plugin-jsonc";
+import { getStaticJSONValue, parseJSON } from "jsonc-eslint-parser";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -30,16 +31,13 @@ function cleanupTemporaryDirectory(temporaryDirectory: string): void {
 }
 
 /**
- * Parse JSONC content by removing comments and parsing.
+ * Parse JSONC content using jsonc-eslint-parser.
  * @param content - The JSONC content.
  * @returns The parsed JSON.
  */
 function parseJSONC(content: string): unknown {
-    // Remove single-line comments
-    let cleaned = content.replaceAll(/\/\/.*$/gmu, "");
-    // Remove multi-line comments
-    cleaned = cleaned.replaceAll(/\/\*[\S\s]*?\*\//gu, "");
-    return JSON.parse(cleaned) as unknown;
+    const ast = parseJSON(content);
+    return getStaticJSONValue(ast);
 }
 
 describe("package-jsonc sync rule", () => {
@@ -78,40 +76,24 @@ describe("package-jsonc sync rule", () => {
         // Verify package.json doesn't exist
         expect(fs.existsSync(packageJsonPath)).toBe(false);
 
-        // Create ESLint instance with our plugin, using tempDir as cwd
+        // Create ESLint instance with eslint-plugin-jsonc and our plugin
         const eslint = new ESLint({
             cwd: temporaryDirectory,
             overrideConfigFile: true,
-            overrideConfig: {
-                files: ["**/*.jsonc"],
-                plugins: {
-                    "package-jsonc": plugin,
-                },
-                rules: {
-                    "package-jsonc/sync": "error",
-                },
-                languageOptions: {
-                    parser: {
-                        parseForESLint(code: string) {
-                            // Wrap JSON in a JavaScript expression so espree can parse it
-                            const wrappedCode = `(${code})`;
-                            const ast = espree.parse(wrappedCode, {
-                                ecmaVersion: "latest",
-                                loc: true,
-                                range: true,
-                                tokens: true,
-                                comment: true,
-                            });
-                            return {
-                                ast,
-                                services: {},
-                                visitorKeys: null,
-                                scopeManager: null,
-                            };
-                        },
+            overrideConfig: [
+                // Use eslint-plugin-jsonc for parsing JSONC files
+                ...jsonc.configs["flat/recommended-with-jsonc"],
+                // Add our rule
+                {
+                    files: ["**/*.jsonc"],
+                    plugins: {
+                        "package-jsonc": plugin,
+                    },
+                    rules: {
+                        "package-jsonc/sync": "error",
                     },
                 },
-            },
+            ],
             fix: true,
         });
 
@@ -163,35 +145,18 @@ describe("package-jsonc sync rule", () => {
         const eslint = new ESLint({
             cwd: temporaryDirectory,
             overrideConfigFile: true,
-            overrideConfig: {
-                files: ["**/*.jsonc"],
-                plugins: {
-                    "package-jsonc": plugin,
-                },
-                rules: {
-                    "package-jsonc/sync": "error",
-                },
-                languageOptions: {
-                    parser: {
-                        parseForESLint(code: string) {
-                            const wrappedCode = `(${code})`;
-                            const ast = espree.parse(wrappedCode, {
-                                ecmaVersion: "latest",
-                                loc: true,
-                                range: true,
-                                tokens: true,
-                                comment: true,
-                            });
-                            return {
-                                ast,
-                                services: {},
-                                visitorKeys: null,
-                                scopeManager: null,
-                            };
-                        },
+            overrideConfig: [
+                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.jsonc"],
+                    plugins: {
+                        "package-jsonc": plugin,
+                    },
+                    rules: {
+                        "package-jsonc/sync": "error",
                     },
                 },
-            },
+            ],
             fix: true,
         });
 
@@ -234,35 +199,18 @@ describe("package-jsonc sync rule", () => {
         const eslint = new ESLint({
             cwd: temporaryDirectory,
             overrideConfigFile: true,
-            overrideConfig: {
-                files: ["**/*.jsonc"],
-                plugins: {
-                    "package-jsonc": plugin,
-                },
-                rules: {
-                    "package-jsonc/sync": "error",
-                },
-                languageOptions: {
-                    parser: {
-                        parseForESLint(code: string) {
-                            const wrappedCode = `(${code})`;
-                            const ast = espree.parse(wrappedCode, {
-                                ecmaVersion: "latest",
-                                loc: true,
-                                range: true,
-                                tokens: true,
-                                comment: true,
-                            });
-                            return {
-                                ast,
-                                services: {},
-                                visitorKeys: null,
-                                scopeManager: null,
-                            };
-                        },
+            overrideConfig: [
+                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.jsonc"],
+                    plugins: {
+                        "package-jsonc": plugin,
+                    },
+                    rules: {
+                        "package-jsonc/sync": "error",
                     },
                 },
-            },
+            ],
             fix: false,
         });
 

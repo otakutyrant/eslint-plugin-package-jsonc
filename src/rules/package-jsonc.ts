@@ -1,4 +1,5 @@
 import type { Rule } from "eslint";
+import { getStaticJSONValue, parseJSON } from "jsonc-eslint-parser";
 import * as fs from "node:fs";
 import path from "node:path";
 
@@ -12,17 +13,13 @@ const JSON_INDENT = 2;
 
 /**
  * Parse JSONC content (JSON with Comments) into a JavaScript object.
- * Removes single-line and multi-line comments.
+ * Uses jsonc-eslint-parser to handle comments and trailing commas.
  * @param content - The JSONC content
  * @returns The parsed JSON object
  */
 function parseJSONC(content: string): Record<string, unknown> {
-    // Remove single-line comments (// ...)
-    let cleaned = content.replaceAll(/\/\/.*$/gmu, "");
-    // Remove multi-line comments (/* ... */)
-    cleaned = cleaned.replaceAll(/\/\*[\S\s]*?\*\//gu, "");
-    // Parse the cleaned content as JSON
-    return JSON.parse(cleaned) as Record<string, unknown>;
+    const ast = parseJSON(content);
+    return getStaticJSONValue(ast) as Record<string, unknown>;
 }
 
 /**
