@@ -38,15 +38,11 @@ export default [
 
 This rule ensures that `package.json` is always in sync with `package.jsonc`:
 
-- If `package.json` does not exist but `package.jsonc` does, the rule reports an error and can generate `package.json` when running with `--fix`.
 - If `package.json` exists but has different content than what would be generated from `package.jsonc`, the rule reports an error and can update `package.json` when running with `--fix`.
 
 ### Fix Mode
 
-When running ESLint with the `--fix` flag, the plugin will automatically:
-
-1. Generate `package.json` if it doesn't exist
-2. Update `package.json` if it's inconsistent with `package.jsonc`
+When running ESLint with the `--fix` flag, the plugin will automatically update `package.json` if it's inconsistent with `package.jsonc`.
 
 ```bash
 eslint package.jsonc --fix
