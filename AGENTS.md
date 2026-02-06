@@ -7,13 +7,17 @@ Before completing my request, read `package.json` to understand the project stru
 # Project Structure
 
 ```
-├── index.js                 # Plugin entry point
-├── rules/
-│   └── package-jsonc.js     # The sync rule implementation
+├── src/
+│   ├── index.ts             # Plugin entry point
+│   └── rules/
+│       └── package-jsonc.ts # The sync rule implementation
 ├── test/
-│   ├── json-parser.js       # Test helper parser
-│   └── package-jsonc.test.js # Test suite
+│   ├── json-parser.ts       # Test helper parser
+│   └── package-jsonc.test.ts # Test suite
+├── dist/                    # Compiled JavaScript output
 ├── package.json             # Package configuration
+├── package.jsonc            # Source of truth (JSON with comments)
+├── tsconfig.json            # TypeScript configuration
 ├── eslint.config.ts         # ESLint configuration (TypeScript)
 └── prettier.config.ts       # Prettier configuration
 ```
@@ -24,3 +28,11 @@ Before completing my request, read `package.json` to understand the project stru
 - When generating code, add comments properly.
 - After modifying code, use scripts from `package.json` to ensure lint and tests pass, and format them finally.
 - Do not use `console.log` in the rule implementation; use ESLint's reporting mechanism instead.
+
+# TypeScript
+
+This project is written in TypeScript. All source files should be `.ts` files under the `src/` directory.
+
+- Source files: `src/**/*.ts`
+- Test files: `test/**/*.ts`
+- Configuration files: `*.config.ts`
