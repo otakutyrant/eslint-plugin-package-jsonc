@@ -63,7 +63,13 @@ const eslintConfig = defineConfig(
         name: "Make tseslint works with type linting",
         languageOptions: {
             parserOptions: {
-                projectService: true,
+                projectService: {
+                    allowDefaultProject: [
+                        "eslint.config.ts",
+                        "prettier.config.ts",
+                        "test/package-jsonc.test.js",
+                    ],
+                },
             },
         },
     },
@@ -93,8 +99,11 @@ const eslintConfig = defineConfig(
     },
     includeIgnoreFile(gitignorePath, "Use .gitignore to ignore"),
     {
-        name: "Ignore postcss.config.mjs",
-        ignores: ["postcss.config.mjs"], // As it is not TypeScript while I use projectService
+        name: "Ignore non-TypeScript files",
+        ignores: [
+            "postcss.config.mjs", // As it is not TypeScript while I use projectService
+            "test/**/*.js", // JavaScript test files
+        ],
     },
 );
 

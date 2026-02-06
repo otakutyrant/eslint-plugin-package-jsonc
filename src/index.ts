@@ -16,7 +16,8 @@ const plugin: ESLint.Plugin = {
 };
 
 // Export the clearFixedFiles function for testing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(plugin as any).clearFixedFiles = clearFixedFiles;
+(
+    plugin as ESLint.Plugin & { clearFixedFiles?: typeof clearFixedFiles }
+).clearFixedFiles = clearFixedFiles;
 
 export default plugin;

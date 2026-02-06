@@ -1,9 +1,14 @@
 import type { Rule } from "eslint";
 import * as fs from "node:fs";
-import * as path from "node:path";
+import path from "node:path";
 
 // Track which files have been fixed in this ESLint run to avoid circular fixes
 const fixedFiles = new Set<string>();
+
+/**
+ * Indentation level for JSON stringification.
+ */
+const JSON_INDENT = 2;
 
 /**
  * Parse JSONC content (JSON with Comments) into a JavaScript object.
@@ -13,9 +18,9 @@ const fixedFiles = new Set<string>();
  */
 function parseJSONC(content: string): Record<string, unknown> {
     // Remove single-line comments (// ...)
-    let cleaned = content.replace(/\/\/.*$/gm, "");
+    let cleaned = content.replaceAll(/\/\/.*$/gmu, "");
     // Remove multi-line comments (/* ... */)
-    cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, "");
+    cleaned = cleaned.replaceAll(/\/\*[\S\s]*?\*\//gu, "");
     // Parse the cleaned content as JSON
     return JSON.parse(cleaned) as Record<string, unknown>;
 }
@@ -27,20 +32,17 @@ function parseJSONC(content: string): Record<string, unknown> {
  * @returns Normalized JSON string
  */
 function getNormalizedJson(object: unknown): string {
-    return JSON.stringify(object, null, 2) + "\n";
+    return `${JSON.stringify(object, null, JSON_INDENT)}\n`;
 }
 
 /**
  * Check if package.json needs to be updated.
  * This is called during the fix phase to avoid circular fixes.
  */
-function needsFix(
-    packageJsonPath: string,
-    normalizedJsonc: string,
-): boolean {
+function needsFix(packageJsonPath: string, normalizedJsonc: string): boolean {
     try {
-        const content = fs.readFileSync(packageJsonPath, "utf8");
-        const data = JSON.parse(content);
+        const content = fs.readFileSync(packageJsonPath);
+        const data = JSON.parse(content.toString()) as Record<string, unknown>;
         return normalizedJsonc !== getNormalizedJson(data);
     } catch {
         // File doesn't exist or is invalid
@@ -67,7 +69,7 @@ const rule: Rule.RuleModule = {
     },
 
     create(context: Rule.RuleContext) {
-        const filename = context.getFilename();
+        const { filename } = context;
         const basename = path.basename(filename);
 
         // Only process package.jsonc files
@@ -80,7 +82,7 @@ const rule: Rule.RuleModule = {
 
         return {
             Program(node) {
-                const sourceCode = context.getSourceCode();
+                const { sourceCode } = context;
                 const jsoncContent = sourceCode.getText();
 
                 let jsoncData: Record<string, unknown>;
@@ -96,12 +98,12 @@ const rule: Rule.RuleModule = {
                 // Check if package.json exists and is consistent
                 let isConsistent = false;
                 try {
-                    const packageJsonContent = fs.readFileSync(
-                        packageJsonPath,
-                        "utf8",
-                    );
-                    const packageJsonData = JSON.parse(packageJsonContent);
-                    isConsistent = normalizedJsonc === getNormalizedJson(packageJsonData);
+                    const packageJsonContent = fs.readFileSync(packageJsonPath);
+                    const packageJsonData = JSON.parse(
+                        packageJsonContent.toString(),
+                    ) as Record<string, unknown>;
+                    isConsistent =
+                        normalizedJsonc === getNormalizedJson(packageJsonData);
                 } catch {
                     // package.json does not exist or is invalid
                 }
