@@ -358,41 +358,4 @@ describe("package-jsonc sync rule", () => {
         cleanupTemporaryDirectory(temporaryDirectory);
         clearFixedFiles?.();
     });
-
-    it("should report error when package.jsonc is missing", async () => {
-        const temporaryDirectory = createTemporaryDirectory();
-        const packageJsonPath = path.join(temporaryDirectory, "package.json");
-
-        fs.writeFileSync(packageJsonPath, "{}", "utf8");
-
-        const eslint = new ESLint({
-            cwd: temporaryDirectory,
-            overrideConfigFile: true,
-            overrideConfig: [
-                {
-                    files: ["package.json"],
-                    plugins: {
-                        "package-jsonc": plugin,
-                    },
-                    rules: {
-                        "package-jsonc/sync": "error",
-                    },
-                },
-            ],
-            fix: false,
-        });
-
-        const results = await eslint.lintFiles(["package.json"]);
-
-        const hasMissingError = results.some((result) =>
-            result.messages.some(
-                (message) => message.messageId === "missingPackageJsonc",
-            ),
-        );
-
-        expect(hasMissingError).toBe(true);
-
-        cleanupTemporaryDirectory(temporaryDirectory);
-        clearFixedFiles?.();
-    });
 });

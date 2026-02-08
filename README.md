@@ -21,9 +21,10 @@ import packageJsonc from "eslint-plugin-package-jsonc";
 export default [
     // Use eslint-plugin-jsonc to parse JSONC files (handles comments, trailing commas)
     ...jsonc.configs["flat/recommended-with-jsonc"],
-    // Add package-jsonc/sync rule for package.jsonc and package.json files
+    // Add package-jsonc/sync rule for package.jsonc files
     {
-        files: ["**/package.jsonc", "**/package.json"],
+        // Use "**/package.jsonc" if you have packages in subdirectories (monorepo)
+        files: ["package.jsonc"],
         plugins: {
             "package-jsonc": packageJsonc,
         },
@@ -34,31 +35,31 @@ export default [
 ];
 ```
 
+> **Note:** Use `"**/package.jsonc"` if you have packages in subdirectories (monorepo).
+
 ## Rule: `package-jsonc/sync`
 
 This rule ensures that `package.jsonc` is the single source of truth for your package configuration.
 
 It enforces the following:
 
-1.  **Missing `package.jsonc`**: If `package.json` exists but `package.jsonc` does not, the rule reports an error. This is not auto-fixable.
-2.  **Invalid `package.jsonc`**: If `package.jsonc` exists but contains invalid JSON (syntax errors), the rule reports an error. This is not auto-fixable.
-3.  **Inconsistent `package.json`**: If `package.jsonc` is valid, the rule compares it with `package.json`. If `package.json` is invalid, or inconsistent with `package.jsonc`, the rule reports an error. **This is auto-fixable.**
+1.  **Invalid `package.jsonc`**: If `package.jsonc` contains invalid JSON (syntax errors), the rule reports an error. This is not auto-fixable.
+2.  **Inconsistent `package.json`**: If `package.jsonc` is valid, the rule compares it with `package.json`. If `package.json` is missing, invalid, or inconsistent with `package.jsonc`, the rule reports an error. **This is auto-fixable.**
 
 ### Fix Mode
 
 When running ESLint with the `--fix` flag, the plugin will automatically generate or update `package.json` to match `package.jsonc`.
 
 ```bash
-eslint package.jsonc package.json --fix
+eslint package.jsonc --fix
 ```
 
 ## How It Works
 
-1.  When linting `package.json`, checks if `package.jsonc` exists.
-2.  When linting `package.jsonc`, it uses `jsonc-eslint-parser` to parse the content.
-3.  If `package.jsonc` is valid, it compares the parsed content with `package.json`.
-4.  If they differ, it reports an error.
-5.  In fix mode, it writes the normalized JSON from `package.jsonc` to `package.json`.
+1.  When linting `package.jsonc`, it uses `jsonc-eslint-parser` to parse the content.
+2.  If `package.jsonc` is valid, it compares the parsed content with `package.json`.
+3.  If they differ (or `package.json` is missing/invalid), it reports an error.
+4.  In fix mode, it writes the normalized JSON from `package.jsonc` to `package.json`.
 
 ## Why Use This?
 

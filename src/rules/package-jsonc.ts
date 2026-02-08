@@ -58,7 +58,6 @@ const rule: Rule.RuleModule = {
         fixable: "code",
         schema: [],
         messages: {
-            missingPackageJsonc: "package.jsonc does not exist.",
             invalidPackageJsonc: "package.jsonc is invalid.",
             inconsistentPackageJson:
                 "package.json is inconsistent with package.jsonc. Run 'npx eslint package.jsonc --fix' to update it.",
@@ -69,28 +68,16 @@ const rule: Rule.RuleModule = {
         const { filename } = context;
         const basename = path.basename(filename);
 
-        if (basename !== "package.jsonc" && basename !== "package.json") {
+        // Only process package.jsonc files
+        if (basename !== "package.jsonc") {
             return {};
         }
 
         const directory = path.dirname(filename);
-        const packageJsoncPath = path.join(directory, "package.jsonc");
         const packageJsonPath = path.join(directory, "package.json");
 
         return {
             Program(node) {
-                // If we are on package.json, we only check if package.jsonc exists
-                if (basename === "package.json") {
-                    if (!fs.existsSync(packageJsoncPath)) {
-                        context.report({
-                            node,
-                            messageId: "missingPackageJsonc",
-                        });
-                    }
-                    return;
-                }
-
-                // If we are on package.jsonc, we perform the full check
                 const { sourceCode } = context;
                 const jsoncContent = sourceCode.getText();
 
