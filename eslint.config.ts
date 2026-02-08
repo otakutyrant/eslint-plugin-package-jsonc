@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { includeIgnoreFile } from "@eslint/compat";
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
-import jsonc from "eslint-plugin-jsonc";
+import jsoncParser from "jsonc-eslint-parser";
 // Use relative path to load the plugin directly from dist/
 // This ensures ESLint works even when package.json is missing
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
@@ -128,8 +128,13 @@ const eslintConfig = defineConfig(
             "package-jsonc/sync": "error",
         },
     },
-    // eslint-plugin-jsonc config for parsing JSONC files (handles comments, trailing commas)
-    ...jsonc.configs["flat/recommended-with-jsonc"],
+    // jsonc-eslint-parser config for parsing JSONC files (handles comments, trailing commas)
+    {
+        files: ["**/*.json", "**/*.jsonc"],
+        languageOptions: {
+            parser: jsoncParser,
+        },
+    },
     includeIgnoreFile(gitignorePath, "Use .gitignore to ignore"),
     {
         name: "Ignore non-TypeScript files",

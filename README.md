@@ -5,7 +5,7 @@ An ESLint plugin that ensures `package.json` is consistent with `package.jsonc`.
 ## Installation
 
 ```bash
-npm install --save-dev eslint-plugin-package-jsonc eslint-plugin-jsonc
+npm install --save-dev eslint-plugin-package-jsonc jsonc-eslint-parser
 ```
 
 ## Usage
@@ -15,12 +15,17 @@ Add the plugin to your ESLint configuration:
 ### Flat Config (eslint.config.js)
 
 ```javascript
-import jsonc from "eslint-plugin-jsonc";
+import jsoncParser from "jsonc-eslint-parser";
 import packageJsonc from "eslint-plugin-package-jsonc";
 
 export default [
-    // Use eslint-plugin-jsonc to parse JSONC files (handles comments, trailing commas)
-    ...jsonc.configs["flat/recommended-with-jsonc"],
+    // Configure the parser for JSON/JSONC files (handles comments, trailing commas)
+    {
+        files: ["**/*.json", "**/*.jsonc"],
+        languageOptions: {
+            parser: jsoncParser,
+        },
+    },
     // Add package-jsonc/sync rule for package.jsonc files
     {
         // Use "**/package.jsonc" if you have packages in subdirectories (monorepo)

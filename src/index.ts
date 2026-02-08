@@ -4,7 +4,7 @@ import packageJsoncRule, { clearFixedFiles } from "./rules/package-jsonc.js";
 // Plugin metadata - hardcoded to avoid dependency on package.json
 // This ensures the plugin works even when the project's package.json is missing
 const PLUGIN_NAME = "eslint-plugin-package-jsonc";
-const PLUGIN_VERSION = "1.0.4";
+const PLUGIN_VERSION = "2.0.1";
 
 const plugin: ESLint.Plugin = {
     meta: {

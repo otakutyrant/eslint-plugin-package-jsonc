@@ -1,6 +1,8 @@
 import { ESLint } from "eslint";
-import jsonc from "eslint-plugin-jsonc";
-import { getStaticJSONValue, parseJSON } from "jsonc-eslint-parser";
+import jsoncParser, {
+    getStaticJSONValue,
+    parseJSON,
+} from "jsonc-eslint-parser";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -86,13 +88,18 @@ describe("package-jsonc sync rule", () => {
         // Verify package.json doesn't exist
         expect(fs.existsSync(packageJsonPath)).toBe(false);
 
-        // Create ESLint instance with eslint-plugin-jsonc and our plugin
+        // Create ESLint instance with jsonc-eslint-parser and our plugin
         const eslint = new ESLint({
             cwd: temporaryDirectory,
             overrideConfigFile: true,
             overrideConfig: [
-                // Use eslint-plugin-jsonc for parsing JSONC files
-                ...jsonc.configs["flat/recommended-with-jsonc"],
+                // Use jsonc-eslint-parser for parsing JSONC files
+                {
+                    files: ["**/*.json", "**/*.jsonc"],
+                    languageOptions: {
+                        parser: jsoncParser,
+                    },
+                },
                 // Add our rule
                 {
                     files: ["**/*.jsonc"],
@@ -156,7 +163,12 @@ describe("package-jsonc sync rule", () => {
             cwd: temporaryDirectory,
             overrideConfigFile: true,
             overrideConfig: [
-                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.json", "**/*.jsonc"],
+                    languageOptions: {
+                        parser: jsoncParser,
+                    },
+                },
                 {
                     files: ["**/*.jsonc"],
                     plugins: {
@@ -210,7 +222,12 @@ describe("package-jsonc sync rule", () => {
             cwd: temporaryDirectory,
             overrideConfigFile: true,
             overrideConfig: [
-                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.json", "**/*.jsonc"],
+                    languageOptions: {
+                        parser: jsoncParser,
+                    },
+                },
                 {
                     files: ["**/*.jsonc"],
                     plugins: {
@@ -269,7 +286,12 @@ describe("package-jsonc sync rule", () => {
             cwd: temporaryDirectory,
             overrideConfigFile: true,
             overrideConfig: [
-                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.json", "**/*.jsonc"],
+                    languageOptions: {
+                        parser: jsoncParser,
+                    },
+                },
                 {
                     files: ["**/*.jsonc"],
                     plugins: {
@@ -320,7 +342,12 @@ describe("package-jsonc sync rule", () => {
             cwd: temporaryDirectory,
             overrideConfigFile: true,
             overrideConfig: [
-                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.json", "**/*.jsonc"],
+                    languageOptions: {
+                        parser: jsoncParser,
+                    },
+                },
                 {
                     files: ["**/*.jsonc"],
                     plugins: {
