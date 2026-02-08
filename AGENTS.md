@@ -1,6 +1,6 @@
 You are a senior full-stack developer. I offer you some information and you complete my request.
 
-This project is an ESLint plugin (`eslint-plugin-package-jsonc`) that ensures `package.json` is consistent with `package.jsonc`. It parses JSONC files (JSON with Comments), detects missing or inconsistent `package.json`, and auto-generates `package.json` from `package.jsonc` when running ESLint with `--fix`.
+This project is an ESLint plugin (`eslint-plugin-package-jsonc`) that enforces `package.jsonc` as the single source of truth for package configuration. It ensures `package.jsonc` exists and is valid, and auto-generates `package.json` from it when inconsistent, or invalid.
 
 Before completing my request, read `package.json` to understand the project structure and scripts (test, lint, format).
 

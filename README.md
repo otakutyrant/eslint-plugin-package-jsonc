@@ -21,9 +21,9 @@ import packageJsonc from "eslint-plugin-package-jsonc";
 export default [
     // Use eslint-plugin-jsonc to parse JSONC files (handles comments, trailing commas)
     ...jsonc.configs["flat/recommended-with-jsonc"],
-    // Add package-jsonc/sync rule for package.jsonc files
+    // Add package-jsonc/sync rule for package.jsonc and package.json files
     {
-        files: ["**/package.jsonc"],
+        files: ["**/package.jsonc", "**/package.json"],
         plugins: {
             "package-jsonc": packageJsonc,
         },
@@ -36,24 +36,29 @@ export default [
 
 ## Rule: `package-jsonc/sync`
 
-This rule ensures that `package.json` is always in sync with `package.jsonc`:
+This rule ensures that `package.jsonc` is the single source of truth for your package configuration.
 
-- If `package.json` exists but has different content than what would be generated from `package.jsonc`, the rule reports an error and can update `package.json` when running with `--fix`.
+It enforces the following:
+
+1.  **Missing `package.jsonc`**: If `package.json` exists but `package.jsonc` does not, the rule reports an error. This is not auto-fixable.
+2.  **Invalid `package.jsonc`**: If `package.jsonc` exists but contains invalid JSON (syntax errors), the rule reports an error. This is not auto-fixable.
+3.  **Inconsistent `package.json`**: If `package.jsonc` is valid, the rule compares it with `package.json`. If `package.json` is invalid, or inconsistent with `package.jsonc`, the rule reports an error. **This is auto-fixable.**
 
 ### Fix Mode
 
-When running ESLint with the `--fix` flag, the plugin will automatically update `package.json` if it's inconsistent with `package.jsonc`.
+When running ESLint with the `--fix` flag, the plugin will automatically generate or update `package.json` to match `package.jsonc`.
 
 ```bash
-eslint package.jsonc --fix
+eslint package.jsonc package.json --fix
 ```
 
 ## How It Works
 
-1. The plugin uses `jsonc-eslint-parser` (via `eslint-plugin-jsonc`) to parse `package.jsonc` with full support for comments and trailing commas
-2. It compares the parsed content with the existing `package.json` (if any)
-3. If they differ, it reports an error
-4. In fix mode, it writes the normalized JSON to `package.json`
+1.  When linting `package.json`, checks if `package.jsonc` exists.
+2.  When linting `package.jsonc`, it uses `jsonc-eslint-parser` to parse the content.
+3.  If `package.jsonc` is valid, it compares the parsed content with `package.json`.
+4.  If they differ, it reports an error.
+5.  In fix mode, it writes the normalized JSON from `package.jsonc` to `package.json`.
 
 ## Why Use This?
 

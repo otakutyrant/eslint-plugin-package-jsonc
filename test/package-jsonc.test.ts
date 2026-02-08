@@ -300,4 +300,99 @@ describe("package-jsonc sync rule", () => {
         cleanupTemporaryDirectory(temporaryDirectory);
         clearFixedFiles?.();
     });
+
+    it("should report error when package.jsonc is invalid", async () => {
+        const temporaryDirectory = createTemporaryDirectory();
+        const packageJsoncPath = path.join(temporaryDirectory, "package.jsonc");
+        const packageJsonPath = path.join(temporaryDirectory, "package.json");
+
+        const invalidPackageJsoncContent = `{
+    "name": "test-package",
+    "version": "1.0.0",
+    invalid json
+  }`;
+
+        fs.writeFileSync(packageJsoncPath, invalidPackageJsoncContent, "utf8");
+        // package.json doesn't matter much here, but let's make it consistent to avoid other errors if parsing worked
+        fs.writeFileSync(packageJsonPath, "{}", "utf8");
+
+        const eslint = new ESLint({
+            cwd: temporaryDirectory,
+            overrideConfigFile: true,
+            overrideConfig: [
+                ...jsonc.configs["flat/recommended-with-jsonc"],
+                {
+                    files: ["**/*.jsonc"],
+                    plugins: {
+                        "package-jsonc": plugin,
+                    },
+                    rules: {
+                        "package-jsonc/sync": "error",
+                    },
+                },
+            ],
+            fix: false,
+        });
+
+        const results = await eslint.lintFiles(["package.jsonc"]);
+
+        // Check that there is an error
+        const errorCount = results.reduce(
+            (sum, result) => sum + result.errorCount,
+            0,
+        );
+
+        expect(errorCount).toBeGreaterThan(0);
+
+        // Check specifically for our error message OR a fatal parsing error (which ESLint reports for invalid JSON)
+        const hasInvalidError = results.some((result) =>
+            result.messages.some(
+                (message) =>
+                    message.messageId === "invalidPackageJsonc" ||
+                    message.fatal,
+            ),
+        );
+
+        expect(hasInvalidError).toBe(true);
+
+        cleanupTemporaryDirectory(temporaryDirectory);
+        clearFixedFiles?.();
+    });
+
+    it("should report error when package.jsonc is missing", async () => {
+        const temporaryDirectory = createTemporaryDirectory();
+        const packageJsonPath = path.join(temporaryDirectory, "package.json");
+
+        fs.writeFileSync(packageJsonPath, "{}", "utf8");
+
+        const eslint = new ESLint({
+            cwd: temporaryDirectory,
+            overrideConfigFile: true,
+            overrideConfig: [
+                {
+                    files: ["package.json"],
+                    plugins: {
+                        "package-jsonc": plugin,
+                    },
+                    rules: {
+                        "package-jsonc/sync": "error",
+                    },
+                },
+            ],
+            fix: false,
+        });
+
+        const results = await eslint.lintFiles(["package.json"]);
+
+        const hasMissingError = results.some((result) =>
+            result.messages.some(
+                (message) => message.messageId === "missingPackageJsonc",
+            ),
+        );
+
+        expect(hasMissingError).toBe(true);
+
+        cleanupTemporaryDirectory(temporaryDirectory);
+        clearFixedFiles?.();
+    });
 });

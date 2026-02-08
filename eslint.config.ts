@@ -120,7 +120,7 @@ const eslintConfig = defineConfig(
     // package-jsonc rule to ensure package.json is consistent with package.jsonc
     {
         name: "package-jsonc/sync",
-        files: ["**/package.jsonc"],
+        files: ["**/package.jsonc", "**/package.json"],
         plugins: {
             "package-jsonc": packageJsonc,
         },
